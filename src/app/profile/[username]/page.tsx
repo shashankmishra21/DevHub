@@ -1,5 +1,7 @@
 import Image from 'next/image'
 import ErrorCard from '@/components/ErrorCard'
+import RepoList from '@/components/RepoList'
+
 
 interface ProfilePageProps {
     params: {
@@ -20,13 +22,15 @@ interface GitHubUser {
 }
 
 interface GitHubRepo {
-    id: number
-    name: string
-    description: string
-    html_url: string
-    stargazers_count: number
-    language: string
+  id: number
+  name: string
+  description: string
+  html_url: string
+  stargazers_count: number
+  language: string
+  updated_at: string 
 }
+
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
     const userRes = await fetch(`https://api.github.com/users/${params.username}`, {
@@ -72,24 +76,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </div>
 
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Latest Repositories</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {repos.map((repo) => (
-                    <a
-                        key={repo.id}
-                        href={repo.html_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-4 border border-gray-200 rounded hover:shadow transition"
-                    >
-                        <h3 className="text-lg font-semibold text-blue-700">{repo.name}</h3>
-                        <p className="text-sm text-gray-600">{repo.description || 'No description'}</p>
-                        <div className="flex justify-between text-xs text-gray-500 mt-2">
-                            <span>⭐ {repo.stargazers_count}</span>
-                            <span>{repo.language || 'N/A'}</span>
-                        </div>
-                    </a>
-                ))}
-            </div>
+            <RepoList repos={repos} />
+
         </main>
     )
 }
