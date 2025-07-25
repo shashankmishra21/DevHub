@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import ErrorCard from '@/components/ErrorCard'
 import RepoList from '@/components/RepoList'
+import LanguagePieChart from '@/components/LanguagePieChart'
 
 
 interface ProfilePageProps {
@@ -77,6 +78,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">Latest Repositories</h2>
             <RepoList repos={repos} />
+            <LanguagePieChart repos={repos} />
+
 
         </main>
     )
