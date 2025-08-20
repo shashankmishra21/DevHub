@@ -12,3 +12,27 @@ model Search {
   username  String
   createdAt DateTime @default(now())
 }
+
+model User {
+  id          Int           @id @default(autoincrement())
+  username    String        @unique
+  name        String?
+  avatarUrl   String?
+  bio         String?
+  location    String?
+  profileUrl  String
+  repositories Repository[]
+  createdAt   DateTime      @default(now())
+}
+
+model Repository {
+  id          Int      @id @default(autoincrement())
+  name        String
+  url         String
+  stars       Int
+  language    String?
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
