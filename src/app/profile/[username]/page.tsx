@@ -6,9 +6,9 @@ import ProfileActions from '@/components/ProfileActions'
 import { Suspense } from 'react'
 
 interface ProfilePageProps {
-    params: {
+    params: Promise<{  // Changed: params is now a Promise
         username: string
-    }
+    }>
 }
 
 interface GitHubUser {
@@ -29,46 +29,43 @@ interface GitHubUser {
 }
 
 interface GitHubRepo {
-    id: number
-    name: string
-    description: string
-    html_url: string
-    stargazers_count: number
-    language: string
-    updated_at: string
-    forks_count: number
-    topics: string[]
-    watchers_count: number
-    size: number
+  id: number
+  name: string
+  description: string
+  html_url: string
+  stargazers_count: number
+  language: string
+  updated_at: string
+  forks_count: number
+  topics: string[]
+  watchers_count: number
+  size: number
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
+    const { username } = await params
+    
     try {
-        const userRes = await fetch(`https://api.github.com/users/${params.username}`, {
+        const userRes = await fetch(`https://api.github.com/users/${username}`, {
             next: { revalidate: 300 }
         })
 
         if (!userRes.ok) {
-            return <ErrorCard username={params.username} />
+            return <ErrorCard username={username} />
         }
 
         const user: GitHubUser = await userRes.json()
 
-        const reposRes = await fetch(`https://api.github.com/users/${params.username}/repos?sort=updated&per_page=12&type=public`, {
+        // Fixed: Use the awaited username variable instead of params.username
+        const reposRes = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=12&type=public`, {
             next: { revalidate: 300 }
         })
-
+        
         if (!reposRes.ok) {
             throw new Error('Failed to fetch repositories')
         }
 
         const repos: GitHubRepo[] = await reposRes.json()
-        await fetch("/api/save-user", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user, repos }),
-        });
-
 
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 relative overflow-hidden">
@@ -84,8 +81,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     <div className="max-w-7xl mx-auto px-6 py-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
-                                <a
-                                    href="/"
+                                <a 
+                                    href="/" 
                                     className="flex items-center space-x-2 text-white hover:text-yellow-300 transition-colors"
                                 >
                                     <span className="text-2xl">🚀</span>
@@ -126,7 +123,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                         </div>
                                     </div>
                                 </div>
-
+                                
                                 {/* User Info */}
                                 <div className="text-center lg:text-left flex-1">
                                     <div className="mb-6">
@@ -134,14 +131,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                             {user.name || user.login}
                                         </h1>
                                         <p className="text-2xl text-blue-200 mb-4">@{user.login}</p>
-
+                                        
                                         {user.bio && (
                                             <p className="text-lg text-white/90 mb-6 max-w-2xl leading-relaxed">
                                                 {user.bio}
                                             </p>
                                         )}
                                     </div>
-
+                                    
                                     {/* User Details */}
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-white/90 mb-8">
                                         {user.location && (
@@ -159,10 +156,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                         {user.blog && (
                                             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20">
                                                 <span>🌐</span>
-                                                <a href={user.blog.startsWith('http') ? user.blog : `https://${user.blog}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm hover:text-yellow-300 transition-colors">
+                                                <a href={user.blog.startsWith('http') ? user.blog : `https://${user.blog}`} 
+                                                   target="_blank" 
+                                                   rel="noopener noreferrer"
+                                                   className="text-sm hover:text-yellow-300 transition-colors">
                                                     Website
                                                 </a>
                                             </div>
@@ -191,8 +188,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons - Now using Client Component */}
-                                    <ProfileActions
+                                    {/* Action Buttons */}
+                                    <ProfileActions 
                                         githubUrl={user.html_url}
                                         userName={user.name || user.login}
                                     />
@@ -306,6 +303,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </div>
         )
     } catch (error) {
-        return <ErrorCard username={params.username} />
+        // username is already available from the await at the top
+        return <ErrorCard username={username} />
     }
 }
